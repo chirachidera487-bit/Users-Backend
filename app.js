@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import adminRoutes from './routes/adminRoutes.js';
+import { Server } from 'socket.io';
 
 dotenv.config({ path: "./.env" }); 
 
@@ -29,7 +30,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to the User Management API");
 });
 
-mongoose.connect("mongodb://localhost:27017/users")
+mongoose.connect(process.env.DATABASE_URL)
   .then(() => {
     console.log("connected to mongodb");
   })
