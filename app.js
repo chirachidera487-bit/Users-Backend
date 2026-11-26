@@ -6,8 +6,9 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import adminRoutes from './routes/adminRoutes.js';
+import { createServer } from 'node:http';
 import { Server } from 'socket.io';
-import { registerChatSocket } from './services/validators/socket/chatSocket.js';
+import { registerChatSocket } from './socket/chatSocket.js';
 
 dotenv.config({ path: "./.env" }); 
 
@@ -30,6 +31,16 @@ app.use("/admin", adminRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to the User Management API");
 });
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://127.0.0.1:5500",
+    credentials: true
+  }
+});
+
+registerChatSocket(io);
 
 mongoose.connect(process.env.DATABASE_URL)
   .then(() => {
