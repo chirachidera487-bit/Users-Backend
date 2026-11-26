@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { verifyToken } from "./jwt";
+import { verifyToken } from "./jwt.js";
 
 export const authenticate = (req, res, next) => {
     try {

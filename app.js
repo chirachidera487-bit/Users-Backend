@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import adminRoutes from './routes/adminRoutes.js';
 import { Server } from 'socket.io';
+import { registerChatSocket } from './services/validators/socket/chatSocket.js';
 
 dotenv.config({ path: "./.env" }); 
 
