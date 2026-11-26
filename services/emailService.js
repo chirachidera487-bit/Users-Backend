@@ -10,10 +10,6 @@ const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
 const apiBaseUrl = new URL(process.env.API_BASE_URL || "http://localhost:3000");
 
-if (!smtpHost) {
-  throw new Error("SMTP_HOST must be configured when NODE_ENV is production");
-}
-
 if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
   throw new Error("SMTP_PORT must be a valid port number");
 }
@@ -36,16 +32,22 @@ if (!isProduction && !process.env.SMTP_HOST) {
   console.log(`View captured emails at http://127.0.0.1:${process.env.MAILDEV_WEB_PORT || 1080}`);
 }
 
-const transporter = nodemailer.createTransport({
-  host: smtpHost,
-  port: smtpPort,
-  secure: smtpSecure,
-  ...(smtpUser ? { auth: { user: smtpUser, pass: smtpPass } } : {}),
-});
+const transporter = smtpHost
+  ? nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      ...(smtpUser ? { auth: { user: smtpUser, pass: smtpPass } } : {}),
+    })
+  : null;
 
-transporter.verify()
-  .then(() => console.log("SMTP connection successful"))
-  .catch((error) => console.error("SMTP connection failed:", error));
+if (transporter) {
+  transporter.verify()
+    .then(() => console.log("SMTP connection successful"))
+    .catch((error) => console.error("SMTP connection failed:", error));
+} else {
+  console.error("Email delivery disabled: SMTP_HOST must be configured");
+}
 
 export const buildWelcomeEmail = ({ userName, email }) => ({
   from: "USER APP <no-reply@userapp.local>",
@@ -86,6 +88,11 @@ export const buildPasswordResetEmail = ({ userName, email, resetToken }) => {
 export const sendPasswordResetEmail = async ({ userName, email, resetToken }) => {
   const mail = buildPasswordResetEmail({ userName, email, resetToken });
 
+  if (!transporter) {
+    console.error("Password reset email not sent: SMTP_HOST must be configured");
+    return false;
+  }
+
   try {
     await transporter.sendMail({
       from: mail.from,
@@ -107,6 +114,11 @@ export const sendWelcomeEmail = async (user) => {
     userName: user.userName || user.fullName || "there",
     email: user.email,
   });
+
+  if (!transporter) {
+    console.error("Welcome email not sent: SMTP_HOST must be configured");
+    return false;
+  }
 
   try {
     await transporter.sendMail({
