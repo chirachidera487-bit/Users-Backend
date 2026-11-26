@@ -1,4 +1,4 @@
-import { authenticateSocket } from "../../../middleware/auth.js";
+import { authenticateSocket } from "./middleware/auth.js";
 
 export const registerChatSocket = (io) => {
   const activeUsers = new Map();
